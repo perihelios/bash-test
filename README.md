@@ -1,3 +1,5 @@
+# BashTest
+
 ## Installation
 BashTest can be installed directly from the command line. Files will be
 downloaded from the GitHub repo.
@@ -27,10 +29,10 @@ Next, you'll need to create a directory that will hold your test scripts and
 the scripts that form the BashTest "framework". This directory will be somewhere
 inside the project containing the Bash scripts for which you're writing the
 tests, and it can be named anything you want. `tests` or `.tests` (if you want
-the directory to be "hidden"--see [Should You Hide Your Tests?](
-#should-you-hide-your-tests)) are great choices. Everything after this point
-will be inside this new directory, so you'll change directories into it right
-after you create it.
+the directory to be "hidden"--see
+[Should You Hide Your Tests?](#should-you-hide-your-tests)) are great choices.
+Everything after this point will be inside this new directory, so you'll change
+directories into it right after you create it.
 
 ```
 mkdir tests
