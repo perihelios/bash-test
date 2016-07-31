@@ -72,7 +72,7 @@ you're using, so your tests don't suddenly break if someone blunders and
 introduces a change to BashTest that isn't compatible with your tests.
 
 You can create this settings file automatically, with default settings. The
-version of the runner scripts will be set to the latest at this time. The runner
+version of the runner scripts will be set to the latest available. The runner
 scripts will also be downloaded, verified with GPG, and cached, so they are
 ready for use.
 
