@@ -14,7 +14,7 @@ in brackets.
 * [jq](https://stedolan.github.io/jq/) (version 1.5 or later) [jq]
 * grep, sed, find, and other standard Linux utilities
 
-For security, files downloaded for or by BashTest will be verified with against
+For security, files downloaded for or by BashTest will be verified against
 signature files using GPG. You'll need to add the Perihelios LLC key to your GPG
 keystore.
 
@@ -39,8 +39,8 @@ mkdir tests
 cd tests
 ```
 
-Then, you'll need to download bootstrap script and its GPG signature file (see
-[Bootstrap Script](#bootstrap-script) for more details.) You'll use the
+Then, you'll need to download the bootstrap script and its GPG signature file
+(see [Bootstrap Script](#bootstrap-script) for more details). You'll use the
 signature file to verify the bootstrap script. You can use `curl`, `wget`, or
 your browser for downloading; since `curl` is a required dependency of BashTest,
 you should already have it installed and can easily use it. You can name the
@@ -74,27 +74,28 @@ introduces a change to BashTest that isn't compatible with your tests.
 You can create this settings file automatically, with default settings (locking
 the version of the runner scripts to whatever is latest at this time). This
 version of the runner scripts will also be downloaded, verified with GPG, and
-cached so they're ready for use.
+cached, so the scripts are ready for use.
 
 ```
 ./run-tests.sh --init
 ```
 
 BashTest stores the runner scripts it downloads in a hidden directory,
-`.runners`, under your tests directory. This script caching speeds up running
-your tests, and also allows you to run "offline" (BashTest, itself, will have no
-need to connect to the Internet) after the scripts are cached. There's normally
-no reason to check this directory into your source repo, since the bootstrap
-script will automatically download the correct runner scripts on each
-developer's machine. You will normally only commit `run-tests.sh` (or whatever
-you named the bootstrap script) and `test-settings.json` to your source repo.
-BashTest also stores data from the execution of your tests in a hidden
-directory, `.execution`, under your tests directory. You do not want to commit
-this directory to your source repo.
+`.runners`, under your tests directory. This caching speeds up running your
+tests, and also allows you to run "offline" (BashTest, itself, will have no need
+to connect to the Internet after the scripts are cached). There's normally no
+reason to check this directory into your source repo, since the bootstrap script
+will automatically download the correct runner scripts on each developer's
+machine. You will normally only commit `run-tests.sh` (or whatever you named the
+bootstrap script) and `test-settings.json` to your source repo.
+
+BashTest also stores data from the execution of your tests in a hidden directory,
+`.execution`, under your tests directory. You do not want to commit this
+directory to your source repo.
 
 To avoid committing unwanted files to your source repo, use the appropriate
-mechanism for your source repo software to exclude these directories. For Git,
-that's just a `.gitignore` file.
+mechanism for your source repo software to exclude these two directories. For
+Git, that's just a `.gitignore` file.
 
 ```
 echo .runner >>.gitignore
