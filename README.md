@@ -71,10 +71,10 @@ not already found in a local cache. It also "locks" the version of BashTest
 you're using, so your tests don't suddenly break if someone blunders and
 introduces a change to BashTest that isn't compatible with your tests.
 
-You can create this settings file automatically, with default settings (locking
-the version of the runner scripts to whatever is latest at this time). This
-version of the runner scripts will also be downloaded, verified with GPG, and
-cached, so the scripts are ready for use.
+You can create this settings file automatically, with default settings. The
+version of the runner scripts will be set to the latest at this time. The runner
+scripts will also be downloaded, verified with GPG, and cached, so they are
+ready for use.
 
 ```
 ./run-tests.sh --init
