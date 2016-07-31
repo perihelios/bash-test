@@ -14,7 +14,7 @@ in brackets.
 * [jq](https://stedolan.github.io/jq/) (version 1.5 or later) [jq]
 * grep, sed, find, and other standard Linux utilities
 
-For security, files downloaded for or by BashTest will be verified against
+For security, files downloaded for, or by, BashTest will be verified against
 signature files using GPG. You'll need to add the Perihelios LLC key to your GPG
 keystore.
 
