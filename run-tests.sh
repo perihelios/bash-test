@@ -76,11 +76,14 @@ download() {
 	case "$httpCode" in
 		200)
 		;;
+		3[0-9][0-9])
+			fail "ERROR: Unexpected redirect ($httpCode) trying to download $downloadDescription from $url"
+		;;
 		404)
 			fail "ERROR: Could not find $downloadDescription at $url"
 		;;
 		*)
-			fail "ERROR: Failed to download $downloadDescription - $errorMessage"
+			fail "ERROR: Failed to download $downloadDescription from $url - $errorMessage"
 		;;
 	esac
 }
