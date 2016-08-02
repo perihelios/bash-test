@@ -60,4 +60,31 @@ checkForInit() {
 	return 1
 }
 
-checkForInit "$@"
+download() {
+	local url="$1"
+	local localFile="$2"
+	local downloadDescription="$3"
+	local httpCode
+	local errorMessage
+
+	IFS=$'\t' read -r errorMessage httpCode < <(curl -s -S --fail --connect-timeout 15 -w '%{http_code}\n' -o "$localFile" "$url" 2>&1 | sed ':a;N;s/\n/\t/;ta')
+
+	if [ -z "$httpCode" ]; then
+		httpCode="$errorMessage"
+	fi
+
+	case "$httpCode" in
+		200)
+		;;
+		404)
+			fail "ERROR: Could not find $downloadDescription at $url"
+		;;
+		*)
+			fail "ERROR: Failed to download $downloadDescription - $errorMessage"
+		;;
+	esac
+}
+
+if checkForInit "$@"; then
+	exit 0
+fi
