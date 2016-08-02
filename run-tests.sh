@@ -1,8 +1,11 @@
 #!/bin/bash
 
-unset ROOT PROJECT
+unset ROOT SETTINGS_FILE_NAME SETTINGS_FILE PROJECT GPG_KEY_ID
 ROOT=$(readlink -f "$(dirname "$0")")
+SETTINGS_FILE_NAME=testbasher-settings.json
+SETTINGS_FILE="$ROOT/$SETTINGS_FILE_NAME"
 PROJECT=perihelios/total-garbage
+GPG_KEY_ID=547B76E4C0C322E8
 
 fail() {
 	local message="$1"
@@ -27,6 +30,25 @@ getLatestVersion() {
 	fi
 
 	sort -rn -t . -k1,1 -k2,2 -k3,3 <<<"$versions" | head -1
+}
+
+getSettingsVersion() {
+	if [ ! -f "$SETTINGS_FILE" ]; then
+		fail "ERROR: $SETTINGS_FILE_NAME not found in $ROOT"
+	fi
+
+	local version
+	version=`jq -r .version "$SETTINGS_FILE" 2>/dev/null`
+
+	if [ $? -ne 0 ]; then
+		fail "ERROR: Failed to parse $SETTINGS_FILE as JSON"
+	fi
+
+	if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+		fail "ERROR: Improper version \"$version\" specified in $SETTINGS_FILE"
+	fi
+
+	echo "$version"
 }
 
 init() {
