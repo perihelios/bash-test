@@ -1,11 +1,12 @@
 #!/bin/bash
 
-unset ROOT SETTINGS_FILE_NAME SETTINGS_FILE PROJECT GPG_KEY_ID
+unset ROOT SETTINGS_FILE_NAME SETTINGS_FILE PROJECT GPG_KEY_ID GPG_KEY_UID
 ROOT=$(readlink -f "$(dirname "$0")")
 SETTINGS_FILE_NAME=testbasher-settings.json
 SETTINGS_FILE="$ROOT/$SETTINGS_FILE_NAME"
 PROJECT=perihelios/total-garbage
 GPG_KEY_ID=547B76E4C0C322E8
+GPG_KEY_UID="Perihelios LLC <pgp@perihelios.com>"
 
 fail() {
 	local message="$1"
@@ -49,6 +50,12 @@ getSettingsVersion() {
 	fi
 
 	echo "$version"
+}
+
+ensureGpgKeyInKeystore() {
+	if ! gpg --list-keys $GPG_KEY_ID >/dev/null 2>&1; then
+		fail "ERROR: GPG key for \"$GPG_KEY_UID\" (key ID $GPG_KEY_ID) not found in keystore; did you import it?"
+	fi
 }
 
 init() {
