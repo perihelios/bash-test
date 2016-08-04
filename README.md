@@ -104,3 +104,93 @@ echo .execution >>.gitignore
 
 Installation is finished! Enjoy using TestBasher.
 
+## Runners
+A *runner* is a plugin for TestBasher that executes (runs) tests. Even the
+default runner is implemented as a plugin. The bootstrap script (`run-tests.sh`,
+or whatever you decided to call it) is responsible for downloading or locating
+the runner you've configured in your `testbasher-settings.json` file; it then
+invokes the runner, passing its arguments to the runner's entry script; all
+responsibility for running the tests is delegated to that runner.
+
+### An Example Runner
+At its simplest, a runner consists of three things: A manifest file written in
+JSON; a GPG signature file for that JSON manifest; and a shell script. Let's
+look at an example:
+
+**my-runner.json**
+```
+{
+	"entryPoint": "start-here.sh",
+	"files": [
+		{
+			"url": "http://example.com/testbasher/runner/start-here-${version}.sh",
+			"localPath": "start-here.sh",
+			"sha256hash": "7d869044f50caa5aa1de7b783e001df190eaec24902729a1d64e532998a24bff"
+		}
+	]
+}
+```
+
+**my-runner.json.asc**
+```
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+.
+.
+.
+-----END PGP SIGNATURE-----
+```
+
+**start-here-1.7.sh**
+```
+#!/bin/bash
+echo 'Hello!'
+```
+
+The manifest, `my-runner.json`, can be named whatever you want. It will be
+published at some URL, like `http://example.com/testbasher/1.7/my-runner.json`.
+The GPG signature file must be named like the manifest file, just with a
+trailing `.asc` extension. Its URL must be the same as that of the manifest,
+except the additional extension:
+`http://example.com/testbasher/my-runner.json.asc`. (The URL of the manifest
+will be provided to the TestBasher bootstrap script in its settings file, and
+the bootstrap script will look for the signature file by appending `.asc` to the
+manifest file URL.)
+
+TestBasher's bootstrap script will download the manifest and its signature, and
+then verify the manifest against its signature using GPG. The key used to make
+the signature must already be installed in the user's GPG keystore. If signature
+verification fails, the runner plugin is considered invalid and will not be
+used.
+
+The entry script in our example says, "Hello!", and exits--obviously not much of
+a test runner. The important thing to notice is how it gets downloaded and
+verified based on the manifest.
+
+According to the manifest, a file (our entry script) lives at the URL
+`http://example.com/testbasher/runner/start-here-${version}.sh`. As you have
+doubtless guessed, `${version}` is a variable; it will automatically be replaced
+by the `version` property in `testbasher-settings.json` before the URL is used
+to download a the file. The manifest also says this file should be put in the
+local path `start-here.sh`, even though the file's name in the URL is different
+(because the version number is part of the filename in the URL). This path is
+always relative to some directory where TestBasher has chosen to place the
+files after downloading (plugins should not care where their files are placed).
+
+The file has one remaining property in the manifest: `sha256hash`, which must
+match the SHA-256 checksum of the file after it is downloaded, or the plugin
+will be considered invalid. This provides GPG signing security for all files in
+the plugin, without needing a GPG signature for every file: The manifest
+specifies the hash of all the other files composing the plugin, and the
+manifest, itself, is signed with a GPG key.
+
+Notice that the `localPath` property of the file matches the higher-level
+`entryPoint` property in the manifest. The bootstrap script needs to know what
+script to invoke in the plugin when delegating to it to run tests. There could
+be many scripts in a runner, with all kinds of names, depending on how the
+developer has chosen to organize their code; the bootstrap script will call only
+one, specified by `entryPoint`, and that file *must* exist after all the plugin
+files specified in the manifest are downloaded and renamed according to their
+`localPath` rules, or the plugin is viewed as invalid and will not be invoked.
+
