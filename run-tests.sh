@@ -1,12 +1,20 @@
 #!/bin/bash
 
-unset ROOT SETTINGS_FILE_NAME SETTINGS_FILE PROJECT GPG_KEY_ID GPG_KEY_UID
+unset ROOT
+unset SETTINGS_FILE_NAME
+unset SETTINGS_FILE
+unset PROJECT
+unset GPG_KEY_ID
+unset GPG_KEY_UID
+unset RUNNER_PACKAGE_NAME
+
 ROOT=$(readlink -f "$(dirname "$0")")
 SETTINGS_FILE_NAME=testbasher-settings.json
 SETTINGS_FILE="$ROOT/$SETTINGS_FILE_NAME"
 PROJECT=perihelios/total-garbage
 GPG_KEY_ID=547B76E4C0C322E8
 GPG_KEY_UID="Perihelios LLC <pgp@perihelios.com>"
+RUNNER_PACKAGE_NAME=dummy.tar.gz
 
 fail() {
 	local message="$1"
@@ -68,6 +76,8 @@ init() {
 	version=`getLatestVersion` || exit $?
 
 	echo -e "{\n  \"version\": \"$version\"\n}" > "$ROOT/testbasher-settings.json"
+
+	ensureRunnerPresent
 }
 
 checkForInit() {
@@ -115,6 +125,35 @@ download() {
 			fail "ERROR: Failed to download $downloadDescription from $url - $errorMessage"
 		;;
 	esac
+}
+
+ensureRunnerPresent() {
+	local version
+	version=`getSettingsVersion` || exit $?
+
+	local runnerDir="$ROOT/.runner/$version"
+
+	if [ ! -d "$runnerDir" ]; then
+		local runnerDownloadDir="$ROOT/.runner/download"
+		local runnerDownloadPackage="$runnerDownloadDir/$RUNNER_PACKAGE_NAME"
+		local runnerDownloadPackageSig="$runnerDownloadPackage.asc"
+
+		rm -rf "$runnerDownloadDir"
+		mkdir -p "$runnerDownloadDir"
+
+		local githubPrefix="https://raw.githubusercontent.com/$PROJECT/$version"
+
+		download "$githubPrefix/$RUNNER_PACKAGE_NAME" "$runnerDownloadPackage" "test runner version $version"
+		download "$githubPrefix/$RUNNER_PACKAGE_NAME.asc" "$runnerDownloadPackageSig" "GPG signature for test runner version $version"
+
+		if gpg --verify "$runnerDownloadPackageSig" "$runnerDownloadPackage" >/dev/null 2>&1; then
+			tar -xzf "$runnerDownloadPackage" -C "$runnerDownloadDir"
+			rm "$runnerDownloadPackage" "$runnerDownloadPackageSig"
+			mv "$runnerDownloadDir" "$runnerDir"
+		else
+			fail "ERROR: SECURITY! Downloaded runner script FAILED GPG VERIFICATION!" >&2
+		fi
+	fi
 }
 
 if checkForInit "$@"; then
