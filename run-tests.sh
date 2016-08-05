@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -u
 
 unset ROOT
 unset SETTINGS_FILE_NAME
