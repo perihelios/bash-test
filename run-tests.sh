@@ -60,6 +60,30 @@ getSettingsVersion() {
 	echo "$version"
 }
 
+getGpgKeySubject() {
+	local gpgKeyFingerprint="$1"
+	local gpgKeySubject
+
+	if [[ ! "$gpgKeyFingerprint" =~ ^[0-9A-F]{40}$ ]]; then
+		fail "ERROR: Invalid GPG key fingerprint \"$gpgKeyFingerprint\"; fingerprints should be 40 hexadecimal characters (uppercase)"
+	fi
+
+	local output
+	output=`gpg --batch --no-tty --list-keys "$gpgKeyFingerprint" 2>/dev/null`
+
+	if [ $? -ne 0 ]; then
+		fail "ERROR: GPG key for fingerprint $gpgKeyFingerprint not found in keystore; did you import it?"
+	fi
+
+	gpgKeySubject=$(awk '/^uid/{gsub("^uid[ \t]+(\\[.*?\\][ \t]+)?", ""); print}' <<<"$output")
+
+	if [ -z "$gpgKeySubject" ]; then
+		fail "ERROR: Failed to get subject for GPG key with fingerprint $gpgKeyFingerprint"
+	fi
+
+	echo "$gpgKeySubject"
+}
+
 ensureGpgKeyInKeystore() {
 	local gpgKeyFingerprint="$1"
 	local gpgKeySubject="$2"
@@ -166,6 +190,22 @@ downloadVerified() {
 	fi
 
 	rm -f "$signatureLocalFile"
+}
+
+downloadPluginManifest() {
+	local url="$1"
+	local pluginDirectory="$2"
+	local gpgKeyFingerprint="$3"
+
+	local localManifestFile="$pluginDirectory/manifest.json"
+	local localUrlFile="$pluginDirectory/manifest.url"
+
+	local gpgKeySubject
+	gpgKeySubject=`getGpgKeySubject "$gpgKeyFingerprint"` || exit $?
+
+	downloadVerified "$url" "$localManifestFile" "plugin manifest file" "$gpgKeyFingerprint" "$gpgKeySubject"
+
+	echo "$url" > "$localUrlFile"
 }
 
 ensureRunnerPresent() {
